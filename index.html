@@ -1,208 +1,255 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Website</title>
-    <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+from flask import Flask, request, redirect, url_for, render_template_string
+from flask_mail import Mail, Message
 
-        /* Body and Global Styles */
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f4f4f4;
-            color: #333;
-        }
+app = Flask(__name__)
 
-        /* Header Section */
-        header {
-            background-color: #333;
-            color: #fff;
-            padding: 20px;
-            text-align: center;
-        }
+# Flask-Mail configuration
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Example for Gmail
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'your_email@gmail.com'  # Your email
+app.config['MAIL_PASSWORD'] = 'your_password'  # Your email password
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
 
-        header h1 {
-            font-size: 2.5rem;
-        }
+mail = Mail(app)
 
-        header nav a {
-            color: #fff;
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 1.1rem;
-        }
+@app.route('/')
+def home():
+    # Embed the HTML directly into the Python code
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Business Website</title>
+        <style>
+            /* General Reset */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-        header nav a:hover {
-            text-decoration: underline;
-        }
+            /* Body and Global Styles */
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                background-color: #f4f4f4;
+                color: #333;
+            }
 
-        /* About Section */
-        section.about {
-            background-color: #fff;
-            padding: 50px;
-            text-align: center;
-        }
+            /* Header Section */
+            header {
+                background-color: #333;
+                color: #fff;
+                padding: 20px;
+                text-align: center;
+            }
 
-        section.about h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
+            header h1 {
+                font-size: 2.5rem;
+            }
 
-        section.about p {
-            font-size: 1.1rem;
-            color: #666;
-        }
+            header nav a {
+                color: #fff;
+                text-decoration: none;
+                margin: 0 15px;
+                font-size: 1.1rem;
+            }
 
-        /* Services Section */
-        section.services {
-            background-color: #f4f4f4;
-            padding: 50px 0;
-            text-align: center;
-        }
+            header nav a:hover {
+                text-decoration: underline;
+            }
 
-        section.services h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
+            /* About Section */
+            section.about {
+                background-color: #fff;
+                padding: 50px;
+                text-align: center;
+            }
 
-        .services-container {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
+            section.about h2 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
 
-        .service-card {
-            background-color: #fff;
-            padding: 20px;
-            width: 250px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
+            section.about p {
+                font-size: 1.1rem;
+                color: #666;
+            }
 
-        .service-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-        }
+            /* Services Section */
+            section.services {
+                background-color: #f4f4f4;
+                padding: 50px 0;
+                text-align: center;
+            }
 
-        .service-card p {
-            font-size: 1rem;
-            color: #555;
-        }
+            section.services h2 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
 
-        /* Contact Section */
-        section.contact {
-            background-color: #333;
-            color: #fff;
-            padding: 50px;
-            text-align: center;
-        }
+            .services-container {
+                display: flex;
+                justify-content: center;
+                gap: 30px;
+                flex-wrap: wrap;
+            }
 
-        section.contact h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
+            .service-card {
+                background-color: #fff;
+                padding: 20px;
+                width: 250px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+            }
 
-        section.contact p {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
+            .service-card h3 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
 
-        section.contact form input, section.contact form textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
+            .service-card p {
+                font-size: 1rem;
+                color: #555;
+            }
 
-        section.contact form button {
-            padding: 12px 20px;
-            background-color: #ff6600;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
+            /* Contact Section */
+            section.contact {
+                background-color: #333;
+                color: #fff;
+                padding: 50px;
+                text-align: center;
+            }
 
-        section.contact form button:hover {
-            background-color: #e55d00;
-        }
+            section.contact h2 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
 
-        /* Footer */
-        footer {
-            background-color: #333;
-            color: #fff;
-            padding: 20px;
-            text-align: center;
-        }
+            section.contact p {
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+            }
 
-        footer p {
-            font-size: 1rem;
-        }
+            section.contact form input, section.contact form textarea {
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border: none;
+                border-radius: 4px;
+                font-size: 1rem;
+            }
 
-    </style>
-</head>
-<body>
-    <!-- Header -->
-    <header>
-        <h1>Business Name</h1>
-        <nav>
-            <a href="#about">About</a>
-            <a href="#services">Services</a>
-            <a href="#contact">Contact</a>
-        </nav>
-    </header>
+            section.contact form button {
+                padding: 12px 20px;
+                background-color: #ff6600;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                font-size: 1rem;
+                cursor: pointer;
+            }
 
-    <!-- About Section -->
-    <section id="about" class="about">
-        <h2>About Us</h2>
-        <p>We are a leading business providing exceptional services in the field of technology and innovation. Our expertise lies in delivering solutions that are both cutting-edge and reliable.</p>
-    </section>
+            section.contact form button:hover {
+                background-color: #e55d00;
+            }
 
-    <!-- Services Section -->
-    <section id="services" class="services">
-        <h2>Our Services</h2>
-        <div class="services-container">
-            <div class="service-card">
-                <h3>Consulting</h3>
-                <p>We offer expert consulting services to help you navigate challenges and improve your business operations.</p>
+            /* Footer */
+            footer {
+                background-color: #333;
+                color: #fff;
+                padding: 20px;
+                text-align: center;
+            }
+
+            footer p {
+                font-size: 1rem;
+            }
+
+        </style>
+    </head>
+    <body>
+        <!-- Header -->
+        <header>
+            <h1>Business Name</h1>
+            <nav>
+                <a href="#about">About</a>
+                <a href="#services">Services</a>
+                <a href="#contact">Contact</a>
+            </nav>
+        </header>
+
+        <!-- About Section -->
+        <section id="about" class="about">
+            <h2>About Us</h2>
+            <p>We are a leading business providing exceptional services in the field of technology and innovation. Our expertise lies in delivering solutions that are both cutting-edge and reliable.</p>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="services">
+            <h2>Our Services</h2>
+            <div class="services-container">
+                <div class="service-card">
+                    <h3>Consulting</h3>
+                    <p>We offer expert consulting services to help you navigate challenges and improve your business operations.</p>
+                </div>
+                <div class="service-card">
+                    <h3>Software Development</h3>
+                    <p>Our team builds custom software solutions that are tailored to your business needs, ensuring efficiency and growth.</p>
+                </div>
+                <div class="service-card">
+                    <h3>IT Support</h3>
+                    <p>We provide reliable IT support to keep your systems running smoothly, minimizing downtime and maximizing productivity.</p>
+                </div>
             </div>
-            <div class="service-card">
-                <h3>Software Development</h3>
-                <p>Our team builds custom software solutions that are tailored to your business needs, ensuring efficiency and growth.</p>
-            </div>
-            <div class="service-card">
-                <h3>IT Support</h3>
-                <p>We provide reliable IT support to keep your systems running smoothly, minimizing downtime and maximizing productivity.</p>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <h2>Contact Us</h2>
-        <p>Have any questions? Get in touch with us and we'll be happy to assist you.</p>
-        <form>
-            <input type="text" name="name" placeholder="Your Name" required>
-            <input type="email" name="email" placeholder="Your Email" required>
-            <textarea name="message" placeholder="Your Message" rows="4" required></textarea>
-            <button type="submit">Send Message</button>
-        </form>
-    </section>
+        <!-- Contact Section -->
+        <section id="contact" class="contact">
+            <h2>Contact Us</h2>
+            <p>Have any questions? Get in touch with us and we'll be happy to assist you.</p>
+            <form method="POST" action="/contact">
+                <input type="text" name="name" placeholder="Your Name" required>
+                <input type="email" name="email" placeholder="Your Email" required>
+                <textarea name="message" placeholder="Your Message" rows="4" required></textarea>
+                <button type="submit">Send Message</button>
+            </form>
+        </section>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2024 Business Name. All rights reserved.</p>
-    </footer>
-</body>
-</html>
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2024 Business Name. All rights reserved.</p>
+        </footer>
+    </body>
+    </html>
+    """
+    return render_template_string(html_content)
+
+@app.route('/contact', methods=['POST'])
+def contact():
+    # Get form data
+    name = request.form['name']
+    email = request.form['email']
+    message = request.form['message']
+
+    # Send email using Flask-Mail
+    msg = Message('New Contact Form Submission',
+                  sender=email,
+                  recipients=['business_email@example.com'])  # Your email here
+    msg.body = f"Name: {name}\nEmail: {email}\nMessage: {message}"
+
+    try:
+        mail.send(msg)
+        return redirect(url_for('success'))
+    except Exception as e:
+        return str(e)
+
+@app.route('/success')
+def success():
+    return "<h1>Thank you for reaching out. We'll get back to you shortly.</h1>"
+
+if __name__ == '__main__':
+    app.run(debug=True)
